@@ -13,9 +13,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementNotInteractableException
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
 
@@ -95,4 +93,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGALRM, stop_waiting)
 
     for url in args.url:
-        iwara_dl(driver, url)
+        try:
+            iwara_dl(driver, url)
+        except selenium.common.exceptions.TimeoutException:
+            print("download " + url + " timeout. Maybe this video is private.")
