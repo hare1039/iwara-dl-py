@@ -67,6 +67,7 @@ def iwara_dl(driver, url):
 
     soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
     dl_link = "https:" + soup.find("a").get("href");
+    filename.replace("/", "-")
     print ("Downloading:", filename)
     urllib.request.urlretrieve(dl_link, filename, dl_bar())
 
