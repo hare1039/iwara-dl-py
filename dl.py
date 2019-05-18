@@ -48,6 +48,12 @@ def iwara_dl(driver, url):
     except ElementNotInteractableException:
         print("No R18 button found... continue")
 
+    fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
+    for h1 in fullpage.find_all("h1"):
+        if "Private video" == h1.string:
+            print(url + " looks like private video")
+            return
+
     button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
     button.click();
 
