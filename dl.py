@@ -64,6 +64,12 @@ def iwara_dl(driver, url):
     print ("Downloading:", filename)
     urllib.request.urlretrieve(dl_link, filename, dl_bar())
 
+def iwara_dl_safe(driver, url):
+    try:
+        iwara_dl(driver, url)
+    except selenium.common.exceptions.TimeoutException:
+        print("download " + url + " timeout. Maybe this video is private.")
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("-s", nargs="?", help="selenium driver host, default: http://127.0.0.1:4444/wd/hub")
@@ -93,7 +99,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGALRM, stop_waiting)
 
     for url in args.url:
-        try:
-            iwara_dl(driver, url)
-        except selenium.common.exceptions.TimeoutException:
-            print("download " + url + " timeout. Maybe this video is private.")
+        iwara_dl_safe(driver, url)

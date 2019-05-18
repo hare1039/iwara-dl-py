@@ -8,7 +8,7 @@ import signal
 import selenium
 import urllib.request
 import progressbar
-from dl import iwara_dl
+from dl import iwara_dl_safe
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
@@ -73,4 +73,4 @@ if __name__ == "__main__":
                 urls.add("https://ecchi.iwara.tv" + tag.get("href"))
         for url in urls:
             print (url)
-            iwara_dl(driver, url)
+            iwara_dl_safe(driver, url)
