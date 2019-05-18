@@ -8,6 +8,7 @@ import signal
 import selenium
 import urllib.request
 import progressbar
+from dl import iwara_dl
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
@@ -19,52 +20,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
 
-class dl_bar():
-    def __init__(self):
-        self.pbar = None
-
-    def __call__(self, block_num, block_size, total_size):
-        if not self.pbar:
-            self.pbar=progressbar.ProgressBar(maxval=total_size)
-            self.pbar.start()
-
-        downloaded = block_num * block_size
-        if downloaded < total_size:
-            self.pbar.update(downloaded)
-        else:
-            self.pbar.finish()
-
 def stop_waiting(signum, frame):
     raise Exception("End of time")
 
 def cleanup(driver):
     driver.quit()
-
-def iwara_dl(driver, url):
-    driver.get(url)
-
-    try:
-        wait = WebDriverWait(driver, 60)
-        r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
-        r18.click()
-    except ElementNotInteractableException:
-        print("No R18 button found... continue")
-
-    button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
-    button.click();
-
-    wait = WebDriverWait(driver, 60)
-    dl_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Source")))
-
-    fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
-    title = fullpage.find("h1", class_="title").string;
-    urlid = driver.current_url.split("/")[-1];
-    filename = title + "-" + urlid + ".mp4";
-
-    soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
-    dl_link = "https:" + soup.find("a").get("href");
-    print ("Downloading:", filename)
-    urllib.request.urlretrieve(dl_link, filename, dl_bar())
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -95,4 +55,22 @@ if __name__ == "__main__":
     signal.signal(signal.SIGALRM, stop_waiting)
 
     for url in args.url:
-        iwara_dl(driver, url)
+        driver.get(url)
+
+        try:
+            wait = WebDriverWait(driver, 60)
+            r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
+            r18.click()
+        except ElementNotInteractableException:
+            print("No R18 button found... continue")
+
+        fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
+        a_tags = fullpage.find_all("a");
+
+        urls = set()
+        for tag in a_tags:
+            if "/videos/" in tag.get("href"):
+                urls.add("https://ecchi.iwara.tv" + tag.get("href"))
+        for url in urls:
+            print (url)
+            iwara_dl(driver, url)
