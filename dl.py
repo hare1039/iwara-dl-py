@@ -18,6 +18,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
 
+class CannotDownload(BaseException): pass
+
 class dl_bar():
     def __init__(self):
         self.pbar = None
@@ -40,46 +42,44 @@ def cleanup(driver):
     driver.quit()
 
 def iwara_dl(driver, url):
-    driver.get(url)
-
     try:
+        driver.get(url)
+
+        try:
+            wait = WebDriverWait(driver, 60)
+            r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
+            r18.click()
+        except ElementNotInteractableException: pass
+
+        fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
+        for h1 in fullpage.find_all("h1"):
+            if "Private video" == h1.string:
+                print(url + " looks like private video")
+                raise CannotDownload(url)
+
+        button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
+        button.click();
+
         wait = WebDriverWait(driver, 60)
-        r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
-        r18.click()
-    except ElementNotInteractableException: pass
+        dl_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Source")))
 
-    fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
-    for h1 in fullpage.find_all("h1"):
-        if "Private video" == h1.string:
-            print(url + " looks like private video")
+        fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
+        title = fullpage.find("h1", class_="title").string;
+        urlid = driver.current_url.split("/")[-1];
+        filename = title + "-" + urlid + ".mp4";
+
+        soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
+        dl_link = "https:" + soup.find("a").get("href");
+        filename = filename.replace("/", "-").replace(":", "-")
+        if os.path.isfile(filename):
+            print (filename, "exist. skip")
             return
-
-    button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
-    button.click();
-
-    wait = WebDriverWait(driver, 60)
-    dl_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Source")))
-
-    fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
-    title = fullpage.find("h1", class_="title").string;
-    urlid = driver.current_url.split("/")[-1];
-    filename = title + "-" + urlid + ".mp4";
-
-    soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
-    dl_link = "https:" + soup.find("a").get("href");
-    filename = filename.replace("/", "-").replace(":", "-")
-    if os.path.isfile(filename):
-        print (filename, "exist. skip")
-        return
-    else:
-        print ("Downloading:", filename)
-    urllib.request.urlretrieve(dl_link, filename, dl_bar())
-
-def iwara_dl_safe(driver, url):
-    try:
-        iwara_dl(driver, url)
+        else:
+            print ("Downloading:", filename)
+            urllib.request.urlretrieve(dl_link, filename, dl_bar())
     except selenium.common.exceptions.TimeoutException:
         print("download " + url + " timeout. Maybe this video is private.")
+        raise CannotDownload(url)
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -109,5 +109,14 @@ if __name__ == "__main__":
     atexit.register(cleanup, driver)
     signal.signal(signal.SIGALRM, stop_waiting)
 
+    not_downloaded = [];
     for url in args.url:
-        iwara_dl_safe(driver, url)
+        try:
+            iwara_dl(driver, url)
+        except CannotDownload:
+            not_downloaded.append(url)
+
+    if (not_downloaded):
+        print("These url cannot download:")
+        for url in not_downloaded:
+            print(url)

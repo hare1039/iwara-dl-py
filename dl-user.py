@@ -8,7 +8,7 @@ import signal
 import selenium
 import urllib.request
 import progressbar
-from dl import iwara_dl_safe
+from dl import iwara_dl, CannotDownload
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
@@ -54,6 +54,7 @@ if __name__ == "__main__":
     atexit.register(cleanup, driver)
     signal.signal(signal.SIGALRM, stop_waiting)
 
+    not_downloaded = [];
     for url in args.url:
         driver.get(url)
 
@@ -71,6 +72,15 @@ if __name__ == "__main__":
         for tag in a_tags:
             if "/videos/" in tag.get("href"):
                 urls.add("https://ecchi.iwara.tv" + tag.get("href"))
-        for url in urls:
-            print (url)
-            iwara_dl_safe(driver, url)
+
+        for u in urls:
+            print (u)
+            try:
+                iwara_dl(driver, u)
+            except CannotDownload:
+                not_downloaded.append(u)
+
+    if (not_downloaded):
+        print("These url cannot download:")
+        for ndl in not_downloaded:
+            print(ndl)
