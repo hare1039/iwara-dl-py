@@ -46,8 +46,7 @@ def iwara_dl(driver, url):
         wait = WebDriverWait(driver, 60)
         r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
         r18.click()
-    except ElementNotInteractableException:
-        print("No R18 button found... continue")
+    except ElementNotInteractableException: pass
 
     fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
     for h1 in fullpage.find_all("h1"):
