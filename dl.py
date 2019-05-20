@@ -9,6 +9,8 @@ import signal
 import selenium
 import urllib.request
 import progressbar
+try: import youtube_dl
+except ImportError: print("[Warning] youtube_dl not installed."); pass
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
@@ -57,6 +59,17 @@ def iwara_dl(driver, url):
                 print(url + " looks like private video")
                 raise CannotDownload(url)
 
+        is_youtube_link = False
+        for ytdl in fullpage.find_all("iframe"):
+            if "youtu" in ytdl.get("src"):
+                ydl_opts = {}
+                with youtube_dl.YoutubeDL(ydl_opts) as youtube:
+                    youtube.download([ytdl.get("src")])
+                is_youtube_link = True
+
+        if (is_youtube_link):
+            return
+
         button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
         button.click();
 
@@ -92,18 +105,16 @@ if __name__ == "__main__":
     if not args.s:
         args.s = "http://127.0.0.1:4444/wd/hub"
 
-    opt = options();
-
-    profile = selenium.webdriver.FirefoxProfile()
+    profile = selenium.webdriver.FirefoxProfile("./seluser")
     profile.set_preference("intl.accept_languages", "zh_TW.UTF-8")
     profile.set_preference("browser.download.folderList", 2)
     profile.set_preference("browser.download.manager.showWhenStarting", False)
     profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/rar;application/zip;application/octet-stream;application/x-zip-compressed;multipart/x-zip;application/x-rar-compressed;application/octet-stream;text/plain;text/html;text/css;text/javascript;image/gif;image/png;image/jpeg;image/bmp;image/webp;video/webm;video/ogg;audio/midi;audio/mpeg;audio/webm;audio/ogg;audio/wav;video/mp4;application/octet-stream;application/mp4;video/x-webm;video/x-sgi-movie;video/x-mpeg;video/mpg;video/quicktime;video/mpeg4;video/x-matroska")
 
     driver = selenium.webdriver.Remote (
-        command_executor=args.s,
-        desired_capabilities=DesiredCapabilities.FIREFOX,
-        browser_profile=profile
+        command_executor     = args.s,
+        desired_capabilities = DesiredCapabilities.FIREFOX,
+        browser_profile      = profile
     )
     driver.set_page_load_timeout(600)
     atexit.register(cleanup, driver)
