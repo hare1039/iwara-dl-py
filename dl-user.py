@@ -37,9 +37,8 @@ if __name__ == "__main__":
     if not args.s:
         args.s = "http://127.0.0.1:4444/wd/hub"
 
-    opt = options();
-
-    profile = selenium.webdriver.FirefoxProfile()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    profile = selenium.webdriver.FirefoxProfile(dir_path + "/seluser")
     profile.set_preference("intl.accept_languages", "zh_TW.UTF-8")
     profile.set_preference("browser.download.folderList", 2)
     profile.set_preference("browser.download.manager.showWhenStarting", False)
