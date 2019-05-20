@@ -64,7 +64,10 @@ def iwara_dl(driver, url):
             if "youtu" in ytdl.get("src"):
                 ydl_opts = {}
                 with youtube_dl.YoutubeDL(ydl_opts) as youtube:
-                    youtube.download([ytdl.get("src")])
+                    try:
+                        youtube.download([ytdl.get("src")])
+                    except youtube_dl.utils.DownloadError:
+                        raise CannotDownload(ytdl.get("src"))
                 is_youtube_link = True
 
         if (is_youtube_link):
