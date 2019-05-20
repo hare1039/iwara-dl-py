@@ -76,7 +76,7 @@ if __name__ == "__main__":
             print (u)
             try:
                 iwara_dl(driver, u)
-            except CannotDownload:
+            except:
                 not_downloaded.append(u)
 
     if (not_downloaded):
