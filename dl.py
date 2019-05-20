@@ -86,7 +86,7 @@ def iwara_dl(driver, url):
 
         soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
         dl_link = "https:" + soup.find("a").get("href");
-        filename = filename.replace("/", "-").replace(":", "-")
+        filename = filename.replace("/", "-").replace(":", "-").replace("|", "-")
         if os.path.isfile(filename):
             print (filename, "exist. skip")
             return
