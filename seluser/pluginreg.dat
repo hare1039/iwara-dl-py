@@ -1,0 +1,40 @@
+Generated File. Do not edit.
+
+[HEADER]
+Version:0.19t:$
+Arch:x86_64-gcc3:$
+
+[PLUGINS]
+Flash Player.plugin:$
+/Library/Internet Plug-Ins/Flash Player.plugin:$
+32.0.0.192:$
+1557878486870:0:0:0:0:$
+Shockwave Flash 32.0 r0:$
+Shockwave Flash:$
+2
+0:application/x-shockwave-flash:Shockwave Flash:swf:$
+1:application/futuresplash:FutureSplash Player:spl:$
+
+[INVALID]
+/Library/Internet Plug-Ins/SharePointBrowserPlugin.plugin:$
+1444028400000:$
+/Library/Internet Plug-Ins/SharePointWebKitPlugin.webplugin:$
+1444028400000:$
+/Library/Internet Plug-Ins/googletalkbrowserplugin.plugin:$
+1449858085000:$
+/Library/Internet Plug-Ins/o1dbrowserplugin.plugin:$
+1449858085000:$
+/Library/Internet Plug-Ins/AdobeAAMDetect.plugin:$
+1462386243000:$
+/Library/Internet Plug-Ins/AdobeExManDetect.plugin:$
+1462386475000:$
+/Library/Internet Plug-Ins/VLC Plugin.plugin:$
+1464876070000:$
+/Library/Internet Plug-Ins/Silverlight.plugin:$
+1472707165000:$
+/Library/Internet Plug-Ins/Disabled Plug-Ins:$
+1534552246000:$
+/Library/Internet Plug-Ins/JavaAppletPlugin.plugin:$
+1554178839000:$
+/Library/Internet Plug-Ins/flashplayer.xpt:$
+1556576403000:$
