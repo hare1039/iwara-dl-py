@@ -97,17 +97,7 @@ def iwara_dl(driver, url):
         print("download " + url + " timeout. Maybe this video is private.")
         raise CannotDownload(url)
 
-if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("-s", nargs="?", help="selenium driver host, default: http://127.0.0.1:4444/wd/hub")
-    p.add_argument("url", nargs="*")
-    args = p.parse_args()
-
-    if not args.url:
-        assert False, "[ERROR] Give me a link"
-    if not args.s:
-        args.s = "http://127.0.0.1:4444/wd/hub"
-
+def make_driver(args):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     profile = selenium.webdriver.FirefoxProfile(dir_path + "/seluser")
     profile.set_preference("intl.accept_languages", "zh_TW.UTF-8")
@@ -123,15 +113,4 @@ if __name__ == "__main__":
     driver.set_page_load_timeout(600)
     atexit.register(cleanup, driver)
     signal.signal(signal.SIGALRM, stop_waiting)
-
-    not_downloaded = [];
-    for url in args.url:
-        try:
-            iwara_dl(driver, url)
-        except CannotDownload:
-            not_downloaded.append(url)
-
-    if (not_downloaded):
-        print("These url cannot download:")
-        for url in not_downloaded:
-            print(url)
+    return driver
