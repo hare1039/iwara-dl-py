@@ -27,13 +27,13 @@ if __name__ == "__main__":
     dl_list = set()
 
     for url in args.url:
-        if "/users/" in url:
-            print(url, "looks like userpage")
+        if "/videos/" in url:
+            dl_list.add(url)
+        else:
+            print(url, "looks not video page, try parsing")
             pageurls = dluser.parse_user(driver, url)
             for page in pageurls:
                 dl_list.add(page)
-        else:
-             dl_list.add(url)
 
     not_downloaded = []
     for dl in dl_list:
