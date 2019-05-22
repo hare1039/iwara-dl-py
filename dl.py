@@ -43,6 +43,25 @@ def stop_waiting(signum, frame):
 def cleanup(driver):
     driver.quit()
 
+tried_iwara_login = False
+def iwara_login(driver):
+    global tried_iwara_login
+    if tried_iwara_login:
+        raise CannotDownload;
+
+    tried_iwara_login = True
+    try:
+        wait = WebDriverWait(driver, 60)
+        r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
+        r18.click()
+    except ElementNotInteractableException: pass
+
+    username = driver.find_element(By.ID, "edit-name")
+    username.send_keys(os.environ["IWARA_USER"])
+    password = driver.find_element(By.ID, "edit-pass")
+    password.send_keys(os.environ["IWARA_PASS"])
+    driver.find_element(By.ID, "edit-submit").click()
+
 def iwara_dl(driver, url):
     try:
         driver.get(url)
@@ -57,7 +76,17 @@ def iwara_dl(driver, url):
         for h1 in fullpage.find_all("h1"):
             if "Private video" == h1.string:
                 print(url + " looks like private video")
-                raise CannotDownload(url)
+
+                login_url = ""
+                for a in fullpage.find_all("a"):
+                    if "/user/login" in a.get("href"):
+                        login_url = a.get("href")
+
+                print ("log in to", login_url)
+                driver.find_element(By.XPATH, "//a[@href='" + login_url + "']").click()
+                iwara_login(driver)
+                iwara_dl(driver, url)
+                return
 
         is_youtube_link = False
         for ytdl in fullpage.find_all("iframe"):
