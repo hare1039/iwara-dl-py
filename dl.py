@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementNotInteractableException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementNotInteractableException, ElementClickInterceptedException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
@@ -43,8 +43,28 @@ def stop_waiting(signum, frame):
 def cleanup(driver):
     driver.quit()
 
-tried_iwara_login = False
+class wait_for_page_load(object):
+    def __init__(self, browser, timeout=60):
+        self.browser = browser
+        self.timeout = timeout
+    def __enter__(self):
+        self.old_page = self.browser.find_element_by_tag_name("html")
+    def page_has_loaded(self):
+        new_page = self.browser.find_element_by_tag_name("html")
+        return new_page.id != self.old_page.id
 
+    def wait_for(self, condition_function):
+        start_time = time.time()
+        while time.time() < start_time + self.timeout:
+            if condition_function():
+                return True
+            else:
+                time.sleep(0.1)
+        raise Exception ("Timeout waiting for {}".format(condition_function.__name__))
+    def __exit__(self, *_):
+        self.wait_for(self.page_has_loaded)
+
+tried_iwara_login = False
 def iwara_login(driver):
     global tried_iwara_login
     if tried_iwara_login:
@@ -53,23 +73,19 @@ def iwara_login(driver):
 
     tried_iwara_login = True
 
-    wait = WebDriverWait(driver, 60)
-    wait.until(lambda x: driver.execute_script("return document.readyState") == "complete")
-
-    try:
-        wait = WebDriverWait(driver, 60)
-        r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
-        r18.click()
-    except ElementNotInteractableException: pass
-
-    username = driver.find_element(By.ID, "edit-name")
+    username = WebDriverWait(driver, 60).until(
+        EC.presence_of_element_located((By.ID, "edit-name"))
+    )
     username.send_keys(os.environ["IWARA_USER"])
     password = driver.find_element(By.ID, "edit-pass")
     password.send_keys(os.environ["IWARA_PASS"])
-    driver.find_element(By.ID, "edit-submit").click()
 
-    wait = WebDriverWait(driver, 60)
-    wait.until(lambda x: driver.execute_script("return document.readyState") == "complete")
+    with wait_for_page_load(driver, timeout=60):
+        try:
+            driver.find_element(By.ID, "edit-submit").click()
+        except ElementClickInterceptedException:
+            driver.find_element(By.CSS_SELECTOR, ".r18-continue").click()
+            driver.find_element(By.ID, "edit-submit").click()
 
 
 dl_keyword_list = ["download", "drive.google.com", "mega", "dl", "1080p"]
@@ -93,10 +109,20 @@ def iwara_dl(driver, url):
                         login_url = a.get("href")
 
                 print ("log in to", login_url)
-                driver.find_element(By.XPATH, "//a[@href='" + login_url + "']").click()
+                with wait_for_page_load(driver, timeout=60):
+                    driver.find_element(By.XPATH, "//a[@href='" + login_url + "']").click()
                 iwara_login(driver)
                 iwara_dl(driver, url)
                 return
+
+        title = fullpage.find("h1", class_="title").string;
+        urlid = driver.current_url.split("/")[-1];
+        filename = title + "-" + urlid + ".mp4";
+        filename = filename.replace("/", "-").replace(":", "-").replace("|", "-").replace("?", "-")
+        filename = filename.replace("\"", "").replace(";", "-")
+        if os.path.isfile(filename):
+            print (filename, "exist. skip")
+            return
 
         all_links = fullpage.find_all("a")
         for a in all_links:
@@ -145,20 +171,11 @@ def iwara_dl(driver, url):
         dl_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Source")))
 
         fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
-        title = fullpage.find("h1", class_="title").string;
-        urlid = driver.current_url.split("/")[-1];
-        filename = title + "-" + urlid + ".mp4";
 
         soup = BeautifulSoup(dl_link.get_attribute("outerHTML"), "html.parser")
         dl_link = "https:" + soup.find("a").get("href");
-        filename = filename.replace("/", "-").replace(":", "-").replace("|", "-").replace("?", "-")
-        filename = filename.replace("\"", "").replace(";", "-")
-        if os.path.isfile(filename):
-            print (filename, "exist. skip")
-            return
-        else:
-            print ("Downloading:", filename)
-            urllib.request.urlretrieve(dl_link, filename, dl_bar())
+        print ("Downloading:", filename)
+        urllib.request.urlretrieve(dl_link, filename, dl_bar())
     except selenium.common.exceptions.TimeoutException:
         print("download " + url + " timeout.")
         raise CannotDownload(url)

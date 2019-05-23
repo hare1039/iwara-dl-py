@@ -32,7 +32,7 @@ if __name__ == "__main__":
         if "/videos/" in url:
             dl_list.add(url)
         else:
-            print(url, "looks not video page, try parsing")
+            print(url, "doesn't look like a video page. Try parsing it")
             pageurls = dluser.parse_user(driver, url)
             for page in pageurls:
                 dl_list.add(page)
