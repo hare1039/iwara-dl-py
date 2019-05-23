@@ -47,9 +47,14 @@ tried_iwara_login = False
 def iwara_login(driver):
     global tried_iwara_login
     if tried_iwara_login:
+        print ("Didn't I just login before?")
         raise CannotDownload;
 
     tried_iwara_login = True
+
+    wait = WebDriverWait(driver, 60)
+    wait.until(lambda x: driver.execute_script("return document.readyState") == "complete")
+
     try:
         wait = WebDriverWait(driver, 60)
         r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
@@ -62,12 +67,14 @@ def iwara_login(driver):
     password.send_keys(os.environ["IWARA_PASS"])
     driver.find_element(By.ID, "edit-submit").click()
 
+    wait = WebDriverWait(driver, 60)
+    wait.until(lambda x: driver.execute_script("return document.readyState") == "complete")
+
 def iwara_dl(driver, url):
     try:
         driver.get(url)
 
         try:
-            wait = WebDriverWait(driver, 60)
             r18 = driver.find_element(By.CSS_SELECTOR, ".r18-continue")
             r18.click()
         except ElementNotInteractableException: pass
@@ -88,6 +95,26 @@ def iwara_dl(driver, url):
                 iwara_dl(driver, url)
                 return
 
+        all_links = fullpage.find_all("a")
+        for a in all_links:
+            if "Show all" == a.string:
+                driver.find_element(By.LINK_TEXT, "Show all").click()
+                fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
+        paragraphs = fullpage.find("div", class_="node-info").find_all("p")
+
+        have_special_kw = False
+        for paragraph in paragraphs:
+            v = str(paragraph).lower()
+            if ("download" in v or
+                "drive.google.com" in v or
+                "mega" in v):
+                if have_special_kw == False:
+                    print ("------------ Found better version in description ------------")
+                print(paragraph.prettify())
+                have_special_kw = True
+        if have_special_kw:
+            print ("-------------------------------------------------------------")
+
         is_youtube_link = False
         for ytdl in fullpage.find_all("iframe"):
             if "youtu" in ytdl.get("src"):
@@ -102,6 +129,7 @@ def iwara_dl(driver, url):
         if (is_youtube_link):
             return
 
+        wait = WebDriverWait(driver, 60)
         button = wait.until(EC.element_to_be_clickable((By.ID, "download-button")))
         button.click();
 
@@ -124,7 +152,7 @@ def iwara_dl(driver, url):
             print ("Downloading:", filename)
             urllib.request.urlretrieve(dl_link, filename, dl_bar())
     except selenium.common.exceptions.TimeoutException:
-        print("download " + url + " timeout. Maybe this video is private.")
+        print("download " + url + " timeout.")
         raise CannotDownload(url)
 
 def make_driver(args):
