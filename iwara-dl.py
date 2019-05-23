@@ -2,6 +2,8 @@ import os
 import argparse
 from dl import iwara_dl, CannotDownload, make_driver
 import importlib
+import traceback
+
 dluser = importlib.import_module("dl-user")
 
 if __name__ == "__main__":
@@ -40,8 +42,11 @@ if __name__ == "__main__":
         print (dl)
         try:
             iwara_dl(driver, dl)
-        except:
+        except CannotDownload:
             not_downloaded.append(dl)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
 
     if (not_downloaded):
         print("These urls cannot download:")
