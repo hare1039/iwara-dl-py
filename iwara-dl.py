@@ -45,6 +45,7 @@ if __name__ == "__main__":
         except CannotDownload:
             not_downloaded.append(dl)
         except Exception as e:
+            not_downloaded.append(dl)
             print(e)
             traceback.print_exc()
 
