@@ -44,6 +44,7 @@ def cleanup(driver):
     driver.quit()
 
 tried_iwara_login = False
+
 def iwara_login(driver):
     global tried_iwara_login
     if tried_iwara_login:
@@ -70,6 +71,8 @@ def iwara_login(driver):
     wait = WebDriverWait(driver, 60)
     wait.until(lambda x: driver.execute_script("return document.readyState") == "complete")
 
+
+dl_keyword_list = ["download", "drive.google.com", "mega", "dl", "1080p"]
 def iwara_dl(driver, url):
     try:
         driver.get(url)
@@ -102,17 +105,22 @@ def iwara_dl(driver, url):
                 fullpage = BeautifulSoup(driver.execute_script("return document.documentElement.outerHTML;"), "html.parser")
         paragraphs = fullpage.find("div", class_="node-info").find_all("p")
 
+        buf = str()
         have_special_kw = False
+        have_link = False
         for paragraph in paragraphs:
             v = str(paragraph).lower()
-            if ("download" in v or
-                "drive.google.com" in v or
-                "mega" in v):
-                if have_special_kw == False:
-                    print ("------------ Found better version in description ------------")
-                print(paragraph.prettify())
-                have_special_kw = True
-        if have_special_kw:
+            for kw in dl_keyword_list:
+                if kw in v:
+                    have_special_kw = True
+                    break
+            if paragraph.find("a") != None:
+                have_link = True
+            buf += paragraph.prettify()
+
+        if have_special_kw and have_link:
+            print ("------------ Found better version in description ------------")
+            print (buf)
             print ("-------------------------------------------------------------")
 
         is_youtube_link = False
