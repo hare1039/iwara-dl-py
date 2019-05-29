@@ -88,7 +88,7 @@ def iwara_login(driver):
             driver.find_element(By.ID, "edit-submit").click()
 
 
-dl_keyword_list = ["download", "drive.google.com", "mega", "dl", "1080p"]
+dl_keyword_list = ["download", "drive.google.com", "mega", "dl", "1080p", "60fps"]
 def iwara_dl(driver, url):
     try:
         driver.get(url)
@@ -115,15 +115,6 @@ def iwara_dl(driver, url):
                 iwara_dl(driver, url)
                 return
 
-        title = fullpage.find("h1", class_="title").string;
-        urlid = driver.current_url.split("/")[-1];
-        filename = title + "-" + urlid + ".mp4";
-        filename = filename.replace("/", "-").replace(":", "-").replace("|", "-").replace("?", "-")
-        filename = filename.replace("\"", "").replace(";", "-")
-        if os.path.isfile(filename):
-            print (filename, "exist. skip")
-            return
-
         all_links = fullpage.find_all("a")
         for a in all_links:
             if "Show all" == a.string:
@@ -148,6 +139,15 @@ def iwara_dl(driver, url):
             print ("------------ Found better version in description ------------")
             print (buf)
             print ("-------------------------------------------------------------")
+
+        title = fullpage.find("h1", class_="title").string[:75];
+        urlid = driver.current_url.split("/")[-1];
+        filename = title + "-" + urlid + ".mp4";
+        filename = filename.replace("/", "-").replace(":", "-").replace("|", "-").replace("?", "-")
+        filename = filename.replace("\"", "").replace(";", "-").replace("\t", "").replace("*", "-")
+        if os.path.isfile(filename):
+            print (filename, "exist. skip")
+            return
 
         is_youtube_link = False
         for ytdl in fullpage.find_all("iframe"):
