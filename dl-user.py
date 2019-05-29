@@ -7,6 +7,7 @@ import time
 import signal
 import selenium
 import urllib.request
+import urllib.parse
 import progressbar
 from dl import iwara_dl, CannotDownload, make_driver
 from bs4 import BeautifulSoup
@@ -28,6 +29,8 @@ def cleanup(driver):
 
 def parse_user(driver, url):
     driver.get(url)
+    o = urllib.parse.urlparse(url)
+    net_location = o.scheme + "://" + o.netloc
 
     try:
         wait = WebDriverWait(driver, 60)
@@ -42,5 +45,5 @@ def parse_user(driver, url):
     urls = set()
     for tag in a_tags:
         if "/videos/" in tag.get("href"):
-            urls.add("https://ecchi.iwara.tv" + tag.get("href"))
+            urls.add(net_location + tag.get("href"))
     return urls
