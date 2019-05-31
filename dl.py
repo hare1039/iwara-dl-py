@@ -88,7 +88,7 @@ def iwara_login(driver):
             driver.find_element(By.ID, "edit-submit").click()
 
 
-dl_keyword_list = ["download", "drive.google.com", "mega", "dl", "1080p", "60fps"]
+dl_keyword_list = ["download", "drive.google.com", "mega", "mediafire.com", "dl", "1080p", "60fps"]
 def iwara_dl(driver, url):
     try:
         driver.get(url)
@@ -145,6 +145,7 @@ def iwara_dl(driver, url):
         filename = title + "-" + urlid + ".mp4";
         filename = filename.replace("/", "-").replace(":", "-").replace("|", "-").replace("?", "-")
         filename = filename.replace("\"", "").replace(";", "-").replace("\t", "").replace("*", "-")
+        filename = filename.replace("<", "-").replace(">", "-")
         if os.path.isfile(filename):
             print (filename, "exist. skip")
             return
