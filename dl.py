@@ -88,7 +88,7 @@ def iwara_login(driver):
             driver.find_element(By.ID, "edit-submit").click()
 
 
-dl_keyword_list = ["download", "drive.google.com", "mega", "mediafire.com", "dl", "1080p", "60fps"]
+dl_keyword_list = ["download", "drive.google.com", "mega", "mediafire.com", "dl", "1080p", "60fps", "bowlroll"]
 def iwara_dl(driver, url):
     try:
         driver.get(url)
