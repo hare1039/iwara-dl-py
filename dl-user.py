@@ -72,7 +72,7 @@ def iwara_dl_by_list(driver, dl_list):
         except Exception as e:
             not_downloaded.append(dl)
             log (e)
-            if not os.environ["IWARA_DL_QUIET"]:
+            if not os.environ.get("IWARA_DL_QUIET"):
                 traceback.print_exc()
 
     if (not_downloaded):
