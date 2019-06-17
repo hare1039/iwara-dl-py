@@ -9,6 +9,7 @@ import selenium
 import urllib.request
 import urllib.parse
 import progressbar
+import traceback
 from dl import iwara_dl, CannotDownload, make_driver
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -20,6 +21,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, new_path):
+        self.new_path = os.path.expanduser(new_path)
+
+    def __enter__(self):
+        self.saved_path = os.getcwd()
+        os.chdir(self.new_path)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.saved_path)
 
 def stop_waiting(signum, frame):
     raise Exception("End of time")
@@ -47,3 +60,27 @@ def parse_user(driver, url):
         if "/videos/" in tag.get("href"):
             urls.add(net_location + tag.get("href"))
     return urls
+
+def iwara_dl_by_list(driver, dl_list):
+    not_downloaded = []
+    for dl in dl_list:
+        print (dl)
+        try:
+            iwara_dl(driver, dl)
+        except CannotDownload:
+            not_downloaded.append(dl)
+        except Exception as e:
+            not_downloaded.append(dl)
+            print(e)
+            traceback.print_exc()
+
+    if (not_downloaded):
+        print("These urls cannot download:")
+        for ndl in not_downloaded:
+            print(ndl)
+
+def iwara_dl_by_username(driver, user_name):
+    print ("[" + user_name + "] ", end="")
+    url = "https://ecchi.iwara.tv/users/" + urllib.parse.quote(user_name) + "/videos"
+    pageurls = parse_user(driver, url)
+    iwara_dl_by_list(driver, pageurls)

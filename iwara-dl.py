@@ -11,6 +11,8 @@ if __name__ == "__main__":
     p.add_argument("-s", nargs="?", help="selenium driver host, default: http://127.0.0.1:4444/wd/hub")
     p.add_argument("-u", nargs="?", help="username")
     p.add_argument("-p", nargs="?", help="password")
+    p.add_argument("-t", action="store_true", help="treat input url as usernames")
+    p.add_argument("-c", action="store_true", help="cd to each username folder. Used only when specify -t")
     p.add_argument("url", nargs="*")
     args = p.parse_args()
 
@@ -26,8 +28,25 @@ if __name__ == "__main__":
         os.environ["IWARA_PASS"] = args.p
 
     driver = make_driver(args)
-    dl_list = set()
 
+    if args.t:
+        folders = set()
+        for name in args.url:
+            if args.c:
+                try:
+                    with dluser.cd(name):
+                        dluser.iwara_dl_by_username(driver, name)
+                except FileNotFoundError:
+                    folders.add(name)
+            else:
+                dluser.iwara_dl_by_username(driver, name)
+        if folders:
+            print("These user cannot download")
+            for folder in folders:
+                print(folder)
+        exit(0)
+
+    dl_list = set()
     for url in args.url:
         if "/videos/" in url:
             dl_list.add(url)
@@ -37,19 +56,4 @@ if __name__ == "__main__":
             for page in pageurls:
                 dl_list.add(page)
 
-    not_downloaded = []
-    for dl in dl_list:
-        print (dl)
-        try:
-            iwara_dl(driver, dl)
-        except CannotDownload:
-            not_downloaded.append(dl)
-        except Exception as e:
-            not_downloaded.append(dl)
-            print(e)
-            traceback.print_exc()
-
-    if (not_downloaded):
-        print("These urls cannot download:")
-        for ndl in not_downloaded:
-            print(ndl)
+    dluser.iwara_dl_by_list(driver, dl_list)
