@@ -20,6 +20,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as options
 
+def log(*objects, sep=" ", end="\n", file=sys.stdout, flush=False):
+    if not os.environ.get("IWARA_DL_QUIET"):
+        print(*objects, sep=sep, end=end, file=file, flush=flush)
+
 class CannotDownload(BaseException): pass
 
 class dl_bar():
@@ -108,7 +112,7 @@ def iwara_dl(driver, url):
                     if "/user/login" in a.get("href"):
                         login_url = a.get("href")
 
-                print ("log in to", login_url)
+                log ("log in to", login_url)
                 with wait_for_page_load(driver, timeout=60):
                     driver.find_element(By.XPATH, "//a[@href='" + login_url + "']").click()
                 iwara_login(driver)
@@ -136,9 +140,9 @@ def iwara_dl(driver, url):
             buf += paragraph.prettify()
 
         if have_special_kw and have_link:
-            print ("------------ Found better version in description ------------")
-            print (buf)
-            print ("-------------------------------------------------------------")
+            log ("------------ Found better version in description ------------")
+            log (buf)
+            log ("-------------------------------------------------------------")
 
         title = fullpage.find("h1", class_="title").string[:75];
         urlid = driver.current_url.split("/")[-1];
@@ -147,7 +151,7 @@ def iwara_dl(driver, url):
         filename = filename.replace("\"", "").replace(";", "-").replace("\t", "").replace("*", "-")
         filename = filename.replace("<", "-").replace(">", "-")
         if os.path.isfile(filename):
-            print (filename, "exist. skip")
+            log (filename, "exist. skip")
             return
 
         is_youtube_link = False

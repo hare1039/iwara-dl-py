@@ -10,7 +10,7 @@ import urllib.request
 import urllib.parse
 import progressbar
 import traceback
-from dl import iwara_dl, CannotDownload, make_driver
+from dl import iwara_dl, CannotDownload, make_driver, log
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
@@ -64,15 +64,16 @@ def parse_user(driver, url):
 def iwara_dl_by_list(driver, dl_list):
     not_downloaded = []
     for dl in dl_list:
-        print (dl)
+        log (dl)
         try:
             iwara_dl(driver, dl)
         except CannotDownload:
             not_downloaded.append(dl)
         except Exception as e:
             not_downloaded.append(dl)
-            print(e)
-            traceback.print_exc()
+            log (e)
+            if not os.environ["IWARA_DL_QUIET"]:
+                traceback.print_exc()
 
     if (not_downloaded):
         print("These urls cannot download:")
@@ -80,7 +81,8 @@ def iwara_dl_by_list(driver, dl_list):
             print(ndl)
 
 def iwara_dl_by_username(driver, user_name):
-    print ("[" + user_name + "] ", end="")
+    print ("[" + user_name + "]")
     url = "https://ecchi.iwara.tv/users/" + urllib.parse.quote(user_name) + "/videos"
     pageurls = parse_user(driver, url)
+    os.environ["IWARA_DL_QUIET"] = "TRUE"
     iwara_dl_by_list(driver, pageurls)
