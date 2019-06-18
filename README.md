@@ -1,9 +1,9 @@
 # iwara-dl
-This program downloads ecchi.iwara.tv videos
+This program downloads `ecchi.iwara.tv` videos
 
 # Usage:
 ```
-usage: iwara-dl.py [-h] [-s [S]] [-u [U]] [-p [P]] [url [url ...]]
+usage: iwara-dl.py [-h] [-s [S]] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
 
 positional arguments:
   url
@@ -13,6 +13,8 @@ optional arguments:
   -s [S]      selenium driver host, default: http://127.0.0.1:4444/wd/hub
   -u [U]      username
   -p [P]      password
+  -t          treat input url as usernames
+  -c          cd to each username folder. Used only when specify -t
 ```
 
 ```
