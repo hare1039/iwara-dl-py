@@ -1,6 +1,9 @@
 # iwara-dl
+
 This program downloads `ecchi.iwara.tv` videos
 
+*Rewrite version =>* https://github.com/hare1039/iwara-dl
+---
 # Usage:
 ```
 usage: iwara-dl.py [-h] [-s [S]] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
